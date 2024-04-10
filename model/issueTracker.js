@@ -6,6 +6,9 @@ const issueTracker = new mongoose.Schema({
   createdBy: { type: String, require: true },
   assignedTo: { type: String },
   statusText: { type: String },
+  createdOn: { type: String },
+  updatedOn: { type: String },
+  open: { type: Boolean },
 });
 
 module.exports = mongoose.model('IssueTracker', issueTracker);

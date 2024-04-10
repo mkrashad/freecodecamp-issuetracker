@@ -1,27 +1,39 @@
-let URLModel = require('../model/issueTracker');
+const IssueTracker = require('../model/issueTracker');
+const { Types } = require('mongoose').ObjectId;
 
 const addIssue = (issueTitle, issueText, createdBy, assignedTo, statusText) => {
-  const msg = new URLModel({
+  const createdOn = new Date().toISOString();
+  const updatedOn = new Date().toISOString();
+  const open = true;
+  const msg = new IssueTracker({
     issueTitle,
     issueText,
     createdBy,
     assignedTo,
     statusText,
+    createdOn,
+    updatedOn,
+    open,
   });
-  msg
+  return msg
     .save()
     .then((_) => {
       console.log('Data successfully added');
     })
     .catch((err) => {
       console.error(err);
+      throw err;
     });
-  return msg;
 };
 
-// const getURL = (value) => {
-//   const data = URLModel.find({ shortUrl: value }).exec();
-//   return data;
-// };
+const deleteIssueById = async (issueId) => {
+  try {
+    const issue = await IssueTracker.findOneAndDelete({ _id: issueId })
+    return issue;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+};
 
-module.exports = { addIssue };
+module.exports = { addIssue, deleteIssueById };
