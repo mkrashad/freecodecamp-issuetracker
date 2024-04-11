@@ -9,7 +9,7 @@ module.exports = function (app) {
       let project = req.params.project;
     })
 
-    .post(async function (req, res) {
+    .post(function (req, res) {
       let project = req.params.project;
       const issueTitle = req.body.issue_title;
       const issueText = req.body.issue_text;
@@ -17,7 +17,7 @@ module.exports = function (app) {
       const assignedTo = req.body.assigned_to;
       const statusText = req.body.status_text;
       if (project && issueTitle && issueText && createdBy) {
-        const result = await issueTracker.addIssue(
+        const result = issueTracker.addIssue(
           issueTitle,
           issueText,
           createdBy,
@@ -33,7 +33,7 @@ module.exports = function (app) {
           created_by: createdBy,
           assigned_to: assignedTo,
           open: result.open,
-          status_text: statusText,
+          status_text: result.statusText,
         });
       } else {
         res.json({ error: 'required field(s) missing' });
@@ -49,9 +49,15 @@ module.exports = function (app) {
       if (issueId) {
         const result = await issueTracker.deleteIssueById(issueId);
         if (result) {
-          res.json({ result: 'successfully deleted', _id: issueId });
+          res.json({
+            result: 'successfully deleted',
+            _id: issueId,
+          });
         } else {
-          res.json({ error: 'could not delete', _id: issueId });
+          res.json({
+            error: 'could not delete',
+            _id: issueId,
+          });
         }
       } else {
         res.json({ error: 'missing _id' });
