@@ -1,4 +1,4 @@
-const IssueTracker = require('../model/issueTracker');
+const Issue = require('../model/issueTracker');
 
 const addIssue = (
   issueTitle,
@@ -13,7 +13,7 @@ const addIssue = (
   const open = true;
   const statusText = status || '';
   const assignedTo = assigned || '';
-  const msg = new IssueTracker({
+  const msg = new Issue({
     issue_title: issueTitle,
     issue_text: issueText,
     created_by: createdBy,
@@ -36,13 +36,16 @@ const addIssue = (
 };
 
 const getIssues = (project, params) => {
-  const issues = IssueTracker.find({ project, ...params });
+  const issues = Issue.find({ project, ...params });
   return issues;
 };
 
-const deleteIssueById = (issueId) => {
+const updateIssue = async (issueId, data) => {
   try {
-    const issue = IssueTracker.findOneAndDelete({ _id: issueId });
+    const issue = await Issue.updateMany(
+      { _id: issueId },
+      { $set: data, updated_on: new Date().toISOString() }
+    );
     return issue;
   } catch (err) {
     console.error(err);
@@ -50,4 +53,19 @@ const deleteIssueById = (issueId) => {
   }
 };
 
-module.exports = { addIssue, deleteIssueById, getIssues };
+const deleteIssueById = async (issueId) => {
+  try {
+    const issue = await Issue.findOneAndDelete({ _id: issueId });
+    return issue;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+};
+
+module.exports = {
+  addIssue,
+  getIssues,
+  updateIssue,
+  deleteIssueById,
+};

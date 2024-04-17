@@ -1,13 +1,13 @@
 'use strict';
-const issueTracker = require('../services/issueTracker');
+const Issue = require('../services/issueTracker');
 
 module.exports = function (app) {
   app
     .route('/api/issues/:project')
 
     .get(async function (req, res) {
-      let project = req.params.project;
-      const issues = await issueTracker.getIssues(project, req.query);
+      const project = req.params.project;
+      const issues = await Issue.getIssues(project, req.query);
       if (issues) {
         const result = issues.map((issue) => {
           return {
@@ -28,7 +28,7 @@ module.exports = function (app) {
       }
     })
 
-    .post(function (req, res) {
+    .post(async function (req, res) {
       const project = req.params.project;
       const issueTitle = req.body.issue_title;
       const issueText = req.body.issue_text;
@@ -36,7 +36,7 @@ module.exports = function (app) {
       const assignedTo = req.body.assigned_to;
       const statusText = req.body.status_text;
       if (project && issueTitle && issueText && createdBy) {
-        const result = issueTracker.addIssue(
+        const result = await Issue.addIssue(
           issueTitle,
           issueText,
           createdBy,
@@ -60,27 +60,51 @@ module.exports = function (app) {
       }
     })
 
-    .put(function (req, res) {
-      let project = req.params.project;
+    .put(async function (req, res) {
+      const { _id, ...data } = req.body;
+
+      if (!_id) {
+        return res.json({ error: 'missing _id' });
+      }
+
+      const filteredData = {};
+      for (const key in data) {
+        if (data[key] !== '') {
+          filteredData[key] = data[key];
+        }
+      }
+
+      if (Object.keys(filteredData).length === 0) {
+        return res.json({ error: 'no update field(s) sent', _id });
+      }
+
+      const result = await Issue.updateIssue(_id, filteredData);
+      if (result.modifiedCount < 1) {
+        return res.json({ error: 'could not update', _id });
+      } else {
+        return res.json({
+          result: 'successfully updated',
+          _id,
+        });
+      }
     })
 
     .delete(async function (req, res) {
       const issueId = req.body._id;
-      if (issueId) {
-        const result = await issueTracker.deleteIssueById(issueId);
-        if (result) {
-          res.json({
-            result: 'successfully deleted',
-            _id: issueId,
-          });
-        } else {
-          res.json({
-            error: 'could not delete',
-            _id: issueId,
-          });
-        }
+      if (!issueId) {
+        return res.json({ error: 'missing _id' });
+      }
+      const result = await Issue.deleteIssueById(issueId);
+      if (result) {
+        return res.json({
+          result: 'successfully deleted',
+          _id: issueId,
+        });
       } else {
-        res.json({ error: 'missing _id' });
+        return res.json({
+          error: 'could not delete',
+          _id: issueId,
+        });
       }
     });
 };
