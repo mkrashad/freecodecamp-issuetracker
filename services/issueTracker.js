@@ -58,7 +58,6 @@ const deleteIssueById = async (issueId) => {
     const issue = await Issue.findOneAndDelete({ _id: issueId });
     return issue;
   } catch (err) {
-    console.error(err);
     return null;
   }
 };
